@@ -4,19 +4,73 @@ import React, { useState } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+
+// Allowed admin email - only this email can access admin panel
+const ALLOWED_ADMIN_EMAIL = 'admin@gmail.com';
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleHome = () => {
-    console.log('Routing to /Admin-panel/admin-home...');
-    router.push('/Admin-panel/admin-home'); // ✅ Correct route
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      // Check if email is the allowed admin email
+      if (email.toLowerCase() !== ALLOWED_ADMIN_EMAIL.toLowerCase()) {
+        throw new Error('Access denied. This email is not authorized for admin access.');
+      }
+
+      console.log('Signing in admin:', email);
+
+      // Sign in with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      console.log('Admin signed in:', user.uid);
+
+      // Get Firebase ID token
+      const idToken = await user.getIdToken();
+
+      // Store token in localStorage
+      localStorage.setItem('firebaseToken', idToken);
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('userRole', 'admin');
+
+      // Success! Redirect to admin home
+      alert('Admin login successful!');
+      router.push('/Admin-panel/admin-home');
+    } catch (error) {
+      console.error('Login error:', error);
+
+      // User-friendly error messages
+      let errorMessage = 'Login failed. Please try again.';
+
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+        errorMessage = 'Invalid email or password.';
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No admin account found with this email.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (error.message.includes('Access denied')) {
+        errorMessage = error.message;
+      }
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgetPassword = () => {
-    router.push('/Admin-panel/admin-forgotpass'); // ✅ Correct route
+    router.push('/Admin-panel/admin-forgotpass');
   };
 
   return (
@@ -62,37 +116,57 @@ export default function AdminLogin() {
           <h2 className="text-xl sm:text-2xl font-bold text-center mb-2 text-black">
             ADMINISTRATIVE LOGIN SYSTEM
           </h2>
-          <div className="space-y-3 sm:space-y-4 flex flex-col items-center">
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          {/* Info Message */}
+          <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded text-xs text-center">
+            <p className="font-semibold">🔒 Restricted Access</p>
+            <p>Administrator credentials required</p>
+          </div>
+
+          <form onSubmit={handleSignIn} className="space-y-3 sm:space-y-4 flex flex-col items-center">
             <input
-              type="text"
-              placeholder="USERNAME"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base rounded-md outline-none border border-[#b8a898] bg-white placeholder-[#6b5d52] focus:border-[#8b4513] focus:ring-1 focus:ring-[#8b4513]"
+              type="email"
+              placeholder="ADMIN EMAIL"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={loading}
+              className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base rounded-md outline-none border border-[#b8a898] bg-white placeholder-[#6b5d52] focus:border-[#8b4513] focus:ring-1 focus:ring-[#8b4513] disabled:opacity-50"
             />
             <input
               type="password"
               placeholder="PASSWORD"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base rounded-md outline-none border border-[#b8a898] bg-white placeholder-[#6b5d52] focus:border-[#8b4513] focus:ring-1 focus:ring-[#8b4513]"
+              required
+              disabled={loading}
+              className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base rounded-md outline-none border border-[#b8a898] bg-white placeholder-[#6b5d52] focus:border-[#8b4513] focus:ring-1 focus:ring-[#8b4513] disabled:opacity-50"
             />
 
             {/* Centered Sign In Button (half width) */}
             <button
-              onClick={handleHome}
-              className="w-1/2 bg-black text-white py-2 sm:py-3 text-sm sm:text-base font-semibold rounded-md hover:bg-gray-800 transition-colors mx-auto block"
+              type="submit"
+              disabled={loading}
+              className="w-1/2 bg-black text-white py-2 sm:py-3 text-sm sm:text-base font-semibold rounded-md hover:bg-gray-800 transition-colors mx-auto block disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              SIGN IN
+              {loading ? 'SIGNING IN...' : 'SIGN IN'}
             </button>
 
             <button
+              type="button"
               onClick={handleForgetPassword}
               className="text-[#2c1810] text-sm sm:text-base hover:text-[#8b4513] hover:underline transition-colors mt-1"
             >
               FORGOT PASSWORD?
             </button>
-          </div>
+          </form>
         </div>
       </main>
 

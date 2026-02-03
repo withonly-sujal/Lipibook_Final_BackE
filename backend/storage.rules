@@ -1,0 +1,52 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth.token.role == 'admin';
+    }
+    
+    // Helper function to check if user owns the file
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Helper function to validate file size (10MB max)
+    function isValidSize() {
+      return request.resource.size <= 10 * 1024 * 1024;
+    }
+    
+    // Helper function to validate file type
+    function isValidFileType() {
+      return request.resource.contentType.matches('image/.*') 
+          || request.resource.contentType == 'application/pdf';
+    }
+    
+    // User files
+    match /users/{userId}/{allPaths=**} {
+      // Users can read their own files, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can upload to their own directory with validation
+      allow create: if isOwner(userId) && isValidSize() && isValidFileType();
+      
+      // Users can update their own files, admins can update all
+      allow update: if isOwner(userId) || isAdmin();
+      
+      // Users can delete their own files, admins can delete all
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+    
+    // Public files (if needed)
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

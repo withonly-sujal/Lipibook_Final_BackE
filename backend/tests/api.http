@@ -1,0 +1,160 @@
+### Health Check
+GET http://localhost:5000/health
+
+###
+
+### Register User
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "Test123456",
+  "displayName": "Test User",
+  "role": "user"
+}
+
+###
+
+### Register Committee Member
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "committee@example.com",
+  "password": "Committee123",
+  "displayName": "Committee Member",
+  "role": "committee"
+}
+
+###
+
+### Register Admin
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "Admin123456",
+  "displayName": "Admin User",
+  "role": "admin"
+}
+
+###
+
+### Request Password Reset
+POST http://localhost:5000/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com"
+}
+
+###
+
+### Get Profile (requires Firebase ID token)
+# First, login via frontend to get the token, then replace below
+GET http://localhost:5000/api/auth/profile
+Authorization: Bearer YOUR_FIREBASE_ID_TOKEN_HERE
+
+###
+
+### Update Profile (requires token)
+PUT http://localhost:5000/api/auth/profile
+Authorization: Bearer YOUR_FIREBASE_ID_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "displayName": "Updated Name"
+}
+
+###
+
+### Upload Document (requires token)
+POST http://localhost:5000/api/documents/upload
+Authorization: Bearer YOUR_FIREBASE_ID_TOKEN_HERE
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="conversionMode"
+
+auto
+------WebKitFormBoundary
+Content-Disposition: form-data; name="file"; filename="test.pdf"
+Content-Type: application/pdf
+
+< ./test-files/sample.pdf
+------WebKitFormBoundary--
+
+###
+
+### Get User Documents (requires token)
+GET http://localhost:5000/api/documents?limit=10&offset=0
+Authorization: Bearer YOUR_FIREBASE_ID_TOKEN_HERE
+
+###
+
+### Get Document by ID (requires token)
+GET http://localhost:5000/api/documents/DOCUMENT_ID_HERE
+Authorization: Bearer YOUR_FIREBASE_ID_TOKEN_HERE
+
+###
+
+### Get Conversion History (requires token)
+GET http://localhost:5000/api/documents/history?limit=20
+Authorization: Bearer YOUR_FIREBASE_ID_TOKEN_HERE
+
+###
+
+### Get Pending Documents (Committee/Admin only)
+GET http://localhost:5000/api/documents/committee/pending?limit=50
+Authorization: Bearer COMMITTEE_OR_ADMIN_TOKEN_HERE
+
+###
+
+### Review Document (Committee/Admin only)
+POST http://localhost:5000/api/documents/DOCUMENT_ID_HERE/review
+Authorization: Bearer COMMITTEE_OR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "reviewStatus": "approved",
+  "comments": "Document looks good"
+}
+
+###
+
+### Delete Document (requires token)
+DELETE http://localhost:5000/api/documents/DOCUMENT_ID_HERE
+Authorization: Bearer YOUR_FIREBASE_ID_TOKEN_HERE
+
+###
+
+### Get All Documents (Admin only)
+GET http://localhost:5000/api/documents/admin/all?limit=50&offset=0
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+###
+
+### Get User by ID (Admin only)
+GET http://localhost:5000/api/auth/users/USER_UID_HERE
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+###
+
+### Set User Role (Admin only)
+PUT http://localhost:5000/api/auth/users/USER_UID_HERE/role
+Authorization: Bearer ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "role": "committee"
+}
+
+###
+
+### Delete User (Admin only)
+DELETE http://localhost:5000/api/auth/users/USER_UID_HERE
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+###
