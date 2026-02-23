@@ -45,11 +45,11 @@ export default function NewAccount() {
       // Store token in localStorage for API calls
       localStorage.setItem('firebaseToken', idToken);
 
-      // Step 3: Register user in backend (creates Firestore document)
+      // Step 3: Create user profile in backend Firestore (NOT creating in Firebase Auth again)
       const displayName = email.split('@')[0]; // Use email prefix as display name
-      const response = await api.register(email, password, displayName, 'user');
+      const response = await api.createProfile(user.uid, email, displayName, 'user');
 
-      console.log('Backend registration successful:', response);
+      console.log('Backend profile creation successful:', response);
 
       // Success! Redirect to login page
       alert('Account created successfully! Please login.');

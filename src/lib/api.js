@@ -43,6 +43,13 @@ class APIClient {
         });
     }
 
+    async createProfile(uid, email, displayName, role = 'user') {
+        return this.request('/auth/create-profile', {
+            method: 'POST',
+            body: JSON.stringify({ uid, email, displayName, role }),
+        });
+    }
+
     async resetPassword(email) {
         return this.request('/auth/reset-password', {
             method: 'POST',

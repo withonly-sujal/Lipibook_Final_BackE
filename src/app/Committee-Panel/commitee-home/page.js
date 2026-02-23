@@ -188,6 +188,11 @@ const LipiBookDashboard = () => {
                   <h3 className="text-base sm:text-lg font-semibold mb-6">Other Region Access</h3>
                   <div className="text-2xl sm:text-3xl font-medium text-right">UK, Nepal</div>
                 </div>
+
+                {/* Card 5 */}
+                <div className="rounded-lg p-4 bg-[#F5E6D3] border border-[#D4A574]">
+                  <h3 className="text-base sm:text-lg font-semibold mb-6">Most Search Documents</h3>        
+                </div>
               </div>
             </div>
           )}

@@ -138,7 +138,7 @@ export default function AdminLogin() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base rounded-md outline-none border border-[#b8a898] bg-white placeholder-[#6b5d52] focus:border-[#8b4513] focus:ring-1 focus:ring-[#8b4513] disabled:opacity-50"
+              className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base rounded-md outline-none border border-[#b8a898] bg-white placeholder-[#6b5d52] focus:border-[#8b4513] focus:ring-1 focus:ring-[#8b4513] disabled:opacity-50 text-black"
             />
             <input
               type="password"
@@ -147,7 +147,7 @@ export default function AdminLogin() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base rounded-md outline-none border border-[#b8a898] bg-white placeholder-[#6b5d52] focus:border-[#8b4513] focus:ring-1 focus:ring-[#8b4513] disabled:opacity-50"
+              className="w-full px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base rounded-md outline-none border border-[#b8a898] bg-white placeholder-[#6b5d52] focus:border-[#8b4513] focus:ring-1 focus:ring-[#8b4513] disabled:opacity-50 text-black"
             />
 
             {/* Centered Sign In Button (half width) */}

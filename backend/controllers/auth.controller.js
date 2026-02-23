@@ -37,6 +37,35 @@ class AuthController {
     }
 
     /**
+     * Create user profile in Firestore (for already authenticated users)
+     * POST /api/auth/create-profile
+     */
+    async createProfile(req, res) {
+        try {
+            const { uid, email, displayName, role } = req.body;
+
+            // Validate required fields
+            const validation = validateRequiredFields(req.body, ['uid', 'email', 'displayName']);
+            if (!validation.isValid) {
+                return validationErrorResponse(res, validation.missingFields);
+            }
+
+            // Create user profile in Firestore
+            const user = await authService.createUserProfile(
+                uid,
+                email,
+                displayName,
+                role || USER_ROLES.USER
+            );
+
+            return successResponse(res, user, 'User profile created successfully', 201);
+        } catch (error) {
+            console.error('Create profile error:', error);
+            return errorResponse(res, error.message, 400);
+        }
+    }
+
+    /**
      * Get user profile
      * GET /api/auth/profile
      */

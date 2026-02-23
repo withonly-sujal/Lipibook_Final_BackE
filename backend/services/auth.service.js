@@ -176,6 +176,54 @@ class AuthService {
     }
 
     /**
+     * Create user profile in Firestore for already-authenticated user
+     * This is used when the frontend creates the user in Firebase Auth
+     */
+    async createUserProfile(uid, email, displayName, role = USER_ROLES.USER) {
+        try {
+            // Verify user exists in Firebase Auth
+            const userRecord = await auth.getUser(uid);
+
+            // Check if user document already exists
+            const existingDoc = await db.collection(COLLECTIONS.USERS).doc(uid).get();
+            if (existingDoc.exists) {
+                return {
+                    uid,
+                    ...existingDoc.data(),
+                };
+            }
+
+            // Set custom claims for role
+            await auth.setCustomUserClaims(uid, { role });
+
+            // Create user document in Firestore
+            const userData = {
+                email: email || userRecord.email,
+                displayName: displayName || userRecord.displayName,
+                role,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                storageUsed: 0,
+                storageLimit: STORAGE_LIMITS.USER_DEFAULT,
+                isActive: true,
+                emailVerified: userRecord.emailVerified || false,
+            };
+
+            await db.collection(COLLECTIONS.USERS).doc(uid).set(userData);
+
+            return {
+                uid,
+                email: userData.email,
+                displayName: userData.displayName,
+                role,
+            };
+        } catch (error) {
+            console.error('Create user profile error:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Set custom user claims (role)
      */
     async setUserRole(uid, role) {

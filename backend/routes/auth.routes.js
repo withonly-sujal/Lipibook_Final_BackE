@@ -10,6 +10,9 @@ const router = express.Router();
 // Register new user
 router.post('/register', authController.register);
 
+// Create user profile (for already authenticated users)
+router.post('/create-profile', authController.createProfile);
+
 // Request password reset
 router.post('/reset-password', authController.requestPasswordReset);
 
