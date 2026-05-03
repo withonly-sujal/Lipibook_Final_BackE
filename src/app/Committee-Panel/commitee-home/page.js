@@ -1,8 +1,10 @@
 'use client';
-import React, { useState } from 'react';
-import { FileText, Calendar, AlertCircle, LogOut, HelpCircle, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Calendar, AlertCircle, LogOut, HelpCircle, ChevronDown, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const LipiBookDashboard = () => {
   const [activeTab, setActiveTab] = useState('summary');
@@ -13,12 +15,59 @@ const LipiBookDashboard = () => {
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
+  // Payment summary state
+  const [totalTransactions, setTotalTransactions] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+
   const periods = ['This Month', 'Last Month', 'This Quarter', 'This Year'];
   const locations = ['Pune, Maharashtra', 'Mumbai, Maharashtra', 'Delhi', 'Bangalore, Karnataka'];
   const router = useRouter();
 
+  // Fetch payment summary on mount
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const token = localStorage.getItem('firebaseToken');
+        if (!token) {
+          setSummaryLoading(false);
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/payment/summary`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setTotalTransactions(data.data.totalTransactions);
+          setTotalAmount(data.data.totalAmount);
+        }
+      } catch (error) {
+        console.error('Error fetching payment summary:', error);
+      } finally {
+        setSummaryLoading(false);
+      }
+    };
+
+    fetchSummary();
+  }, []);
+
   const handleLogout = () => {
     router.push('/Committee-Panel/commitee-login');
+  };
+
+  // Format amount for display
+  const formatAmount = (amount) => {
+    if (amount >= 100000) {
+      return `₹${(amount / 100000).toFixed(1)}L`;
+    } else if (amount >= 1000) {
+      return `₹${amount.toLocaleString('en-IN')}`;
+    }
+    return `₹${amount}`;
   };
 
   return (
@@ -104,7 +153,7 @@ const LipiBookDashboard = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Card 1 */}
+                {/* Card 1 - Total Transactions */}
                 <div className="rounded-lg p-4 bg-[#F5E6D3] border border-[#D4A574]">
                   <h3 className="text-base sm:text-lg font-semibold mb-3">Total Transactions</h3>
 
@@ -168,30 +217,37 @@ const LipiBookDashboard = () => {
                     )}
                   </div>
 
-                  <div className="text-4xl sm:text-5xl font-medium text-right">200</div>
+                  <div className="text-4xl sm:text-5xl font-medium text-right">
+                    {summaryLoading ? (
+                      <Loader2 className="w-8 h-8 animate-spin ml-auto" />
+                    ) : (
+                      totalTransactions
+                    )}
+                  </div>
                 </div>
 
-                {/* Card 2 */}
+                {/* Card 2 - Total MODISCRIPT DOCX */}
                 <div className="rounded-lg p-4 bg-[#F5E6D3] border border-[#D4A574]">
                   <h3 className="text-base sm:text-lg font-semibold mb-6">Total MODISCRIPT DOCX</h3>
                   <div className="text-4xl sm:text-5xl font-medium text-right mt-20">2.5L</div>
                 </div>
 
-                {/* Card 3 */}
+                {/* Card 3 - Payment Amount */}
                 <div className="rounded-lg p-4 bg-[#F5E6D3] border border-[#D4A574]">
                   <h3 className="text-base sm:text-lg font-semibold mb-6">Payment Amount</h3>
-                  <div className="text-3xl sm:text-4xl font-medium text-right">₹90,000</div>
+                  <div className="text-3xl sm:text-4xl font-medium text-right">
+                    {summaryLoading ? (
+                      <Loader2 className="w-8 h-8 animate-spin ml-auto" />
+                    ) : (
+                      formatAmount(totalAmount)
+                    )}
+                  </div>
                 </div>
 
-                {/* Card 4 */}
+                {/* Card 4 - Other Region Access */}
                 <div className="rounded-lg p-4 bg-[#F5E6D3] border border-[#D4A574]">
                   <h3 className="text-base sm:text-lg font-semibold mb-6">Other Region Access</h3>
                   <div className="text-2xl sm:text-3xl font-medium text-right">UK, Nepal</div>
-                </div>
-
-                {/* Card 5 */}
-                <div className="rounded-lg p-4 bg-[#F5E6D3] border border-[#D4A574]">
-                  <h3 className="text-base sm:text-lg font-semibold mb-6">Most Search Documents</h3>        
                 </div>
               </div>
             </div>

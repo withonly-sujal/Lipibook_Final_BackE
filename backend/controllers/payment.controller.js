@@ -2,6 +2,7 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { successResponse, errorResponse } from '../utils/response.js';
+import { db } from '../config/firebase.config.js';
 
 dotenv.config();
 
@@ -80,6 +81,24 @@ const verifyPayment = async (req, res) => {
         if (isAuthentic) {
             console.log('✅ Payment verified successfully:', razorpay_payment_id);
 
+            // Store payment record in Firestore for summary tracking
+            try {
+                await db.collection('payments').doc(razorpay_payment_id).set({
+                    paymentId: razorpay_payment_id,
+                    orderId: razorpay_order_id,
+                    amount: 30, // ₹30 per conversion
+                    currency: 'INR',
+                    status: 'success',
+                    userUid: req.user?.uid || 'unknown',
+                    userEmail: req.user?.email || 'unknown',
+                    createdAt: new Date().toISOString(),
+                });
+                console.log('✅ Payment record saved to Firestore');
+            } catch (dbError) {
+                // Log but don't fail the payment verification if DB write fails
+                console.error('⚠️ Failed to save payment record:', dbError.message);
+            }
+
             return successResponse(res, {
                 paymentId: razorpay_payment_id,
                 orderId: razorpay_order_id,
@@ -96,7 +115,37 @@ const verifyPayment = async (req, res) => {
     }
 };
 
+/**
+ * Get Payment Summary (Total transactions + Total amount)
+ * GET /api/payment/summary
+ */
+const getSummary = async (req, res) => {
+    try {
+        const paymentsRef = db.collection('payments');
+        const snapshot = await paymentsRef.where('status', '==', 'success').get();
+
+        let totalTransactions = 0;
+        let totalAmount = 0;
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            totalTransactions++;
+            totalAmount += data.amount || 0;
+        });
+
+        return successResponse(res, {
+            totalTransactions,
+            totalAmount,
+        }, 'Payment summary fetched successfully');
+
+    } catch (error) {
+        console.error('❌ Error fetching payment summary:', error);
+        return errorResponse(res, 'Failed to fetch payment summary', 500);
+    }
+};
+
 export default {
     createOrder,
     verifyPayment,
+    getSummary,
 };

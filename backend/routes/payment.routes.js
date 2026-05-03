@@ -15,4 +15,7 @@ router.post('/create-order', verifyToken, paymentController.createOrder);
 // Verify payment after completion
 router.post('/verify', verifyToken, paymentController.verifyPayment);
 
+// Get payment summary (total transactions + total amount)
+router.get('/summary', verifyToken, paymentController.getSummary);
+
 export default router;
