@@ -3,20 +3,47 @@ import React, { useState } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function LipiBookForgotPassword() {
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = () => {
-    if (email.trim()) {
-      setIsSubmitted(true);
-    }
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-  const handleBackToLogin = () => {
-    router.push('/Admin-panel/admin-resetpass'); // ✅ correct route
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Password reset error:', error);
+
+      let errorMessage = 'Failed to send reset email. Please try again.';
+
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many requests. Please try again later.';
+      }
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,47 +91,66 @@ export default function LipiBookForgotPassword() {
             <h2 className="text-xl sm:text-2xl font-bold text-center mb-2 text-black">
               ADMINISTRATIVE LOGIN SYSTEM
             </h2>
-            <h3 className="text-lg sm:text-xl font-bold text-center mb-8 text-black">
+            <h3 className="text-lg sm:text-xl font-bold text-center mb-6 text-black">
               FORGOT PASSWORD
             </h3>
 
-            <div className="mb-6">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="COMMITTEE MAIL"
-                className="w-full px-4 py-3 text-sm sm:text-base outline-none rounded-md border border-[#D4A574] bg-[#F5E6D3] text-black placeholder-[#6b5d52] focus:ring-1 focus:ring-[#8b4513]"
-              />
-            </div>
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
+                {error}
+              </div>
+            )}
 
-            <div className="flex justify-center">
+            <form onSubmit={handleSubmit}>
+              <div className="mb-6">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="ADMIN EMAIL"
+                  required
+                  disabled={loading}
+                  className="w-full px-4 py-3 text-sm sm:text-base outline-none rounded-md border border-[#D4A574] bg-[#F5E6D3] text-black placeholder-[#6b5d52] focus:ring-1 focus:ring-[#8b4513] disabled:opacity-50"
+                />
+              </div>
+
+              <div className="flex justify-center">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-black text-white w-1/2 py-3 text-sm sm:text-base font-semibold hover:bg-gray-800 transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'SENDING...' : 'RESET PASS'}
+                </button>
+              </div>
+            </form>
+
+            <div className="flex justify-center mt-4">
               <button
-                onClick={handleSubmit}
-                className="bg-black text-white w-1/2 py-3 text-sm sm:text-base font-semibold hover:bg-gray-800 transition-colors rounded-md"
+                type="button"
+                onClick={() => router.push('/Admin-panel/admin-login')}
+                className="text-[#2c1810] text-sm hover:text-[#8b4513] hover:underline transition-colors"
               >
-                RESET PASS
+                BACK TO LOGIN
               </button>
             </div>
           </div>
         ) : (
           <div className="w-full sm:w-3/4 md:w-1/2 lg:w-2/5 xl:w-1/3 px-4 sm:px-6 text-center py-8 ">
-            <h2 className="text-xl sm:text-2xl font-bold mb-8 text-black">
-              COMMITTEE LOGIN SYSTEM
+            <h2 className="text-xl sm:text-2xl font-bold mb-6 text-black">
+              ADMINISTRATIVE LOGIN SYSTEM
             </h2>
 
-            <p
-              className="text-lg sm:text-xl italic mb-8 text-black"
-              style={{ fontFamily: 'Georgia, serif' }}
-            >
-              DEAR COMMITTEE, RESET LINK SENT
-              <br />
-              SUCCESSFULLY.
-            </p>
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded text-sm text-center mb-6">
+              <p className="font-semibold mb-1">✅ Reset Link Sent!</p>
+              <p>A password reset link has been sent to <strong>{email}</strong>.</p>
+              <p className="mt-1">Please check your inbox (and spam folder).</p>
+            </div>
 
             <div className="flex justify-center">
               <button
-                onClick={handleBackToLogin}
+                onClick={() => router.push('/Admin-panel/admin-login')}
                 className="bg-black text-white w-1/2 py-3 text-sm sm:text-base font-semibold hover:bg-gray-800 transition-colors rounded-md"
               >
                 BACK TO LOGIN

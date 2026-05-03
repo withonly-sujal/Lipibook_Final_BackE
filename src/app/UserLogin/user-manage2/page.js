@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { Menu, HelpCircle } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -144,4 +144,16 @@ function UserManage2() {
   );
 }
 
-export default UserManage2;
+function UserManage2Wrapper() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#e8d7c3] flex items-center justify-center">
+        <div className="text-[#2c1810] text-lg font-medium">Loading...</div>
+      </div>
+    }>
+      <UserManage2 />
+    </Suspense>
+  );
+}
+
+export default UserManage2Wrapper;

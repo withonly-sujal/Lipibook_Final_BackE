@@ -1,30 +1,33 @@
 'use client'
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle, Home, HelpCircle, FileText } from 'lucide-react'; // Imported FileText for the button
+import { CheckCircle, HelpCircle, FileText } from 'lucide-react';
 import Image from 'next/image';
 
-// Function to format the current time for display
-const getCurrentTime = () => {
-  return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-};
-
-export default function PaymentSuccess() {
+function PaymentSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams(); 
 
-  // --- Mock Transaction Data ---
+  // Get real transaction data from URL params
+  const paymentId = searchParams.get('paymentId') || 'N/A';
+  const orderId = searchParams.get('orderId') || 'N/A';
+  const amount = searchParams.get('amount') || '30.00';
+
+  // Current time for display
+  const currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const currentDate = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+
   const transactionDetails = {
-    amount: '₹ 30.00',
+    amount: `₹ ${amount}`,
     type: 'One-Time Conversion Fee',
-    mode: 'UPI (G-Pay/Paytm)',
-    transactionId: 'MODI' + Math.floor(Math.random() * 900000 + 100000),
-    time: getCurrentTime(),
-    date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
+    mode: 'Razorpay (Card/UPI/Netbanking)',
+    paymentId: paymentId,
+    orderId: orderId,
+    time: currentTime,
+    date: currentDate,
   };
 
-  // FIX: Renamed handler and updated route to the document view page
   const handleViewDocument = () => {
-    // Navigate to the TranslatedDocs page
     router.push('/UserLogin/TranslatedDocs'); 
   };
   
@@ -89,8 +92,12 @@ export default function PaymentSuccess() {
                         <span className="font-semibold text-black">{transactionDetails.mode}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                        <span className="font-medium text-gray-600">Transaction ID:</span>
-                        <span className="font-semibold text-black">{transactionDetails.transactionId}</span>
+                        <span className="font-medium text-gray-600">Payment ID:</span>
+                        <span className="font-semibold text-black text-xs break-all">{transactionDetails.paymentId}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="font-medium text-gray-600">Order ID:</span>
+                        <span className="font-semibold text-black text-xs break-all">{transactionDetails.orderId}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="font-medium text-gray-600">Time & Date:</span>
@@ -98,12 +105,11 @@ export default function PaymentSuccess() {
                     </div>
                 </div>
 
-                {/* View Document Button (FIXED) */}
+                {/* View Document Button */}
                 <button
                     onClick={handleViewDocument}
                     className="mt-8 bg-[#8b4513] text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-[#5c3d2e] transition-colors flex items-center justify-center mx-auto"
                 >
-                    {/* Used FileText icon to symbolize a document */}
                     <FileText className="w-5 h-5 mr-2" /> View Document
                 </button>
             </div>
@@ -126,5 +132,17 @@ export default function PaymentSuccess() {
         </footer>
         {/* ---------------- END FOOTER ---------------- */}
     </div>
+  );
+}
+
+export default function PaymentSuccess() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen w-screen bg-[#e8d7c3] flex items-center justify-center">
+        <div className="text-[#2c1810] text-lg font-medium">Loading...</div>
+      </div>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }

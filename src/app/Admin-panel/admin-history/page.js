@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Image from "next/image";
 import { HelpCircle, Menu } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function AdminHistory() {
+function AdminHistoryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const folderName = searchParams.get("name") || "1679";
@@ -112,3 +112,14 @@ export default function AdminHistory() {
   );
 }
 
+export default function AdminHistory() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#e8d7c3] flex items-center justify-center">
+        <div className="text-[#2c1810] text-lg font-medium">Loading...</div>
+      </div>
+    }>
+      <AdminHistoryContent />
+    </Suspense>
+  );
+}

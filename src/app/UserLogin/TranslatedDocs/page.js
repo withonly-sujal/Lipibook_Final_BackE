@@ -52,7 +52,7 @@ export default function TranslatedDocs() {
       <main className="flex flex-col items-center flex-1 px-6 text-center relative py-8 overflow-y-auto">
         {/* Back button */}
         <button
-          onClick={() => router.back()}
+          onClick={handleGoToUpload}
           className="absolute top-6 left-6 flex items-center gap-2 text-black hover:underline z-10"
         >
           <ArrowLeft className="w-6 h-6" />
